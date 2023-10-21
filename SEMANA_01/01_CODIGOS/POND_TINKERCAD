@@ -1,0 +1,14 @@
+// C++ code
+//
+void setup()
+{
+  pinMode(8, OUTPUT);
+}
+
+void loop()
+{
+  digitalWrite(8, HIGH);
+  delay(900); // Wait for 900 millisecond(s)
+  digitalWrite(8, LOW);
+  delay(600); // Wait for 600 millisecond(s)
+}
