@@ -20,6 +20,8 @@ int sequencia[MAX_LEVEL]; // guarda a sequencia do jogo
 int player_sequence[MAX_LEVEL]; // guarda a sequencia inserida
 int nivel = 0;
 int velocidade = 1000; // velocidade que pisca a sequencia
+bool resetPressionado = false;
+
 
 void setup() {
   for (int i = 0; i < 4; i++) { // configuração dos pins
@@ -30,9 +32,13 @@ void setup() {
 }
 
 void loop() {
+  if (resetPressionado) {
+    iniciar_jogo();
+    resetPressionado = false;
+  }
   if (nivel == 0) { // inicia o jogo se ainda nao estiver em andamento
     if (digitalRead(BOTAORESET) == LOW) {
-      iniciar_jogo();
+      resetPressionado = true;
     }
   } else { // roda o jogo, mostra e armazena as sequencias
     if (nivel <= MAX_LEVEL) {
@@ -60,6 +66,11 @@ void mostrar_sequencia() {
     delay(velocidade);
     digitalWrite(leds[led_a_acender], LOW); // apaga o led
     delay(200); // tempo do led aceso
+    
+    if (digitalRead(BOTAORESET) == LOW) { // verifica se o botão de reset foi pressionado durante a sequência
+      resetPressionado = true;
+      return;
+    }
   }
   delay(300); // tempo de espera até o jogador poder responder
 }
