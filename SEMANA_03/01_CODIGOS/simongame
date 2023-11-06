@@ -1,0 +1,103 @@
+#include <Arduino.h> // adicionei essa biblioteca para que o random funcione melhor
+
+#define LED1 16
+#define LED2 17
+#define LED3 21
+#define LED4 22
+
+#define BOTAO1 27
+#define BOTAO2 26
+#define BOTAO3 25
+#define BOTAO4 33
+#define BOTAORESET 35
+
+const int MAX_LEVEL = 5; // quantidade de níveis
+
+int leds[4] = {LED1, LED2, LED3, LED4};
+int botoes[4] = {BOTAO1, BOTAO2, BOTAO3, BOTAO4};
+
+int sequencia[MAX_LEVEL]; // guarda a sequencia do jogo
+int player_sequence[MAX_LEVEL]; // guarda a sequencia inserida
+int nivel = 0;
+int velocidade = 1000; // velocidade que pisca a sequencia
+
+void setup() {
+  for (int i = 0; i < 4; i++) { // configuração dos pins
+    pinMode(leds[i], OUTPUT);
+    pinMode(botoes[i], INPUT_PULLUP);
+  }
+  pinMode(BOTAORESET, INPUT_PULLUP);
+}
+
+void loop() {
+  if (nivel == 0) { // inicia o jogo se ainda nao estiver em andamento
+    if (digitalRead(BOTAORESET) == LOW) {
+      iniciar_jogo();
+    }
+  } else { // roda o jogo, mostra e armazena as sequencias
+    if (nivel <= MAX_LEVEL) {
+      mostrar_sequencia();
+      obter_sequencia_jogador();
+    } else {
+      iniciar_jogo(); // reinicia o jogo
+    }
+  }
+}
+
+void iniciar_jogo() {
+  nivel = 1;
+  randomSeed(analogRead(0)); // cria uma sequencia aleatoria
+  for (int i = 0; i < MAX_LEVEL; i++) {
+    sequencia[i] = random(0, 4); // cria uma sequência aleatória
+  }
+  delay(900); // tempo de espera antes de começar a sequencia
+}
+
+void mostrar_sequencia() {
+  for (int i = 0; i < nivel; i++) {
+    int led_a_acender = sequencia[i];
+    digitalWrite(leds[led_a_acender], HIGH); // acende o led
+    delay(velocidade);
+    digitalWrite(leds[led_a_acender], LOW); // apaga o led
+    delay(200); // tempo do led aceso
+  }
+  delay(300); // tempo de espera até o jogador poder responder
+}
+
+void obter_sequencia_jogador() {
+  int indice_jogador = 0;
+
+  while (indice_jogador < nivel) {
+    for (int i = 0; i < 4; i++) {
+      if (digitalRead(botoes[i]) == LOW) {
+        player_sequence[indice_jogador] = i; // registra o botao que o jogador apertou 
+        digitalWrite(leds[i], HIGH); // acende o led correspondente
+        delay(200);
+        digitalWrite(leds[i], LOW); // apaga esse led
+        indice_jogador++;
+        delay(200);
+      }
+    }
+  }
+  
+  verificar_sequencia_jogador(); // verifica se a sequencia está certa
+}
+
+void verificar_sequencia_jogador() {
+  for (int i = 0; i < nivel; i++) {
+    if (player_sequence[i] != sequencia[i]) { // jogador errou a sequencia
+      aguardar_botao_reset(); // para reiniciar o jogo, o jogador deve pressionar o botão de reset
+      return;
+    }
+  }
+  // jogador acertou a sequência
+  nivel++;
+  delay(500); // tempo de espera antes da prox sequencia
+}
+
+void aguardar_botao_reset() {
+  while (digitalRead(BOTAORESET) == HIGH) {
+    // Aguarda o botão de reset ser pressionado
+  }
+  iniciar_jogo(); // Quando o botão de reset é pressionado, inicia o jogo
+}
